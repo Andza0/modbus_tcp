@@ -1,10 +1,14 @@
 #include "network.h"
-#include <stdio.h>
-#include <stdlib.h>
+
 
 
 int send_req(uint8_t req[], size_t sz, int sockfd)
 {
+	struct timeval timeout = {
+		.tv_sec = 2,
+		.tv_usec = 0
+	};
+	setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
 	size_t sent = 0;
 	while(sent < sz){		
 		int n = send(sockfd, req + sent, sz - sent, 0);
@@ -24,6 +28,11 @@ int send_req(uint8_t req[], size_t sz, int sockfd)
 
 int recv_resp(uint8_t resp[], size_t sz, int sockfd)
 {
+	struct timeval timeout = {
+		.tv_sec = 2,
+		.tv_usec = 0
+	};
+	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 	size_t received = 0;
 	while(received < sz){
 		int n = recv(sockfd, resp + received, sz - received, 0);

@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "utils.h"
 #include "protocol.h"
@@ -22,8 +21,18 @@ int main(int argc, char **argv){
 		return 1;
 	}
 
+	struct modbus_request config = {
+		.transaction_id = 1,
+		.protocol_id = 0,
+		.length = 6,
+		.unit_id = 1,
+		.function_code = 3,
+		.start_address = address,
+		.count = count
+	};
+
 	uint8_t req[12];
-	if(build_request(address, count, req) != 0)
+	if(build_request(config, req) != 0)
 	{
 		fprintf(stderr, "Request array too small\n");
 		return 1;
@@ -42,6 +51,12 @@ int main(int argc, char **argv){
 		return 1;
 	}
 	uint16_t recv_len = (resp_header[4] << 8) | resp_header[5];
+	int expected_len = 3 + 2 * count;
+	if(recv_len != expected_len && !(resp_header[7] == 0x83 && recv_len == 3)){
+		fprintf(stderr, "Incorrect length reading\n");
+		close(sockfd);
+		return 1;
+	}
 
 	uint8_t resp[recv_len - 2];
 	if(recv_resp(resp, recv_len - 2, sockfd) == -1){
