@@ -1,40 +1,58 @@
 #include "utils.h"
 
-int parse_arguments(int argc, char **argv, char **ip, uint16_t *port, uint16_t *address, uint8_t *count)
+int parse_arguments(char **argv, char *mode, char **ip, uint16_t *port, uint16_t *address, uint8_t *count, int16_t *write_val)
 {
-	if(argc != 5)
-	{
+	char *end;
+
+	if(strcmp(mode, "read") == 0){
+		long address_long = strtol(argv[4], &end, 10);
+		if((end == argv[4] || *end != '\0') || (address_long < 0 || address_long > 65535)){
+			fprintf(stderr, "Invalid address\n");
+			print_usage(argv[0]);
+			return -1;
+		}
+		*address = address_long;
+
+		long count_long = strtol(argv[5], &end, 10);
+		if((end == argv[5] || *end != '\0') || (count_long < 1 || count_long > 125)){
+			fprintf(stderr, "Invalid count\n");
+			print_usage(argv[0]);
+			return -1;
+		}
+		*count = count_long;
+	}
+	else if(strcmp(mode, "write") == 0){
+		long address_long = strtol(argv[4], &end, 10);
+		if((end == argv[4] || *end != '\0') || (address_long < 0 || address_long > 10)){
+			fprintf(stderr, "Invalid address\n");
+			print_usage(argv[0]);
+			return -1;
+		}
+		*address = address_long;
+
+		long write_val_long = strtol(argv[5], &end, 10);
+		if((end == argv[5] || *end != '\0') || (write_val_long < INT16_MIN || write_val_long > INT16_MAX)){
+			fprintf(stderr, "Invalid value\n");
+			print_usage(argv[0]);
+			return -1;
+		}
+		*write_val = write_val_long;
+	}
+	else{;
+
 		print_usage(argv[0]);
 		return -1;
 	}
 
-	*ip = argv[1];
+	*ip = argv[2];
 
-	char *end;
-
-	long port_long = strtol(argv[2], &end, 10);
-	if((end == argv[2] || *end != '\0') || (port_long < 1 || port_long > 65535)){
+	long port_long = strtol(argv[3], &end, 10);
+	if((end == argv[3] || *end != '\0') || (port_long < 1 || port_long > 65535)){
 		fprintf(stderr, "Invalid port\n");
 		print_usage(argv[0]);
 		return -1;
 	}
 	*port = port_long;
-
-	long address_long = strtol(argv[3], &end, 10);
-	if((end == argv[3] || *end != '\0') || (address_long < 0 || address_long > 65535)){
-		fprintf(stderr, "Invalid address\n");
-		print_usage(argv[0]);
-		return -1;
-	}
-	*address = address_long;
-
-	long count_long = strtol(argv[4], &end, 10);
-	if((end == argv[4] || *end != '\0') || (count_long < 1 || count_long > 125)){
-		fprintf(stderr, "Invalid count\n");
-		print_usage(argv[0]);
-		return -1;
-	}
-	*count = count_long;
 
 	return 0;
 }
@@ -80,5 +98,5 @@ void print_hex(char *header, uint8_t arr[], size_t sz)
 
 void print_usage(char *program)
 {
-	fprintf(stderr, "Usage: %s <ip> <port> <address> <count>\n", program);
+	fprintf(stderr, "Usage: %s <mode> <ip> <port> <address> <count>/<value>\n", program);
 }
