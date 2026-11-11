@@ -22,7 +22,7 @@ in project's directory, run: _**make**_
 
 Usage:
 
-_**./mbread <mode> <ip> <port> <address> <count>**_
+_**./mbread {mode} {ip} {port} {address} {count}**_
 
 modes: read, write
 
@@ -44,6 +44,7 @@ Value is a 16 bit unsigned integer. The biggest value you can write to a registe
 <h3>Usage examples:</h3>
 
 _**./mbread read 127.0.0.1 1502 0 10**_
+
 _**./mbread read 127.0.0.1 1502 9 1**_
 
 _**./mbread write 127.0.0.1 1502 9 65535**_
