@@ -8,11 +8,10 @@ _**sudo apt install build-essential python3-venv**_
 
 <h3>Prepare python environment:</h3>
 
-_**
-python3 -m venv venv
-venv/bin/pip install "pymodbus==3.6.9"**_
+_**python3 -m venv venv**_
+_**venv/bin/pip install "pymodbus==3.6.9"**_
 
-In a separate terminal, run: venv/bin/python modbus_sim.py
+In a separate terminal, run: _**venv/bin/python modbus_sim.py**_
 Leave it running.
 
 <h3>Compile source code:</h3>
@@ -23,7 +22,7 @@ in project's directory, run: _**make**_
 
 Usage:
 
-./mbread <mode> <ip> <port> <address> <count>
+_**./mbread <mode> <ip> <port> <address> <count>**_
 
 modes: read, write
 
@@ -44,10 +43,10 @@ Value is a 16 bit unsigned integer. The biggest value you can write to a registe
 
 <h3>Usage examples:</h3>
 
-./mbread read 127.0.0.1 1502 0 10
-./mbread read 127.0.0.1 1502 9 1
+_**./mbread read 127.0.0.1 1502 0 10**_
+_**./mbread read 127.0.0.1 1502 9 1**_
 
-./mbread write 127.0.0.1 1502 9 65535
+_**./mbread write 127.0.0.1 1502 9 65535**_
 
 
 
