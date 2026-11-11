@@ -19,7 +19,7 @@ int main(int argc, char **argv){
 	uint16_t address;
 
 	uint8_t count;
-	int16_t write_val;
+	uint16_t write_val;
 
 	if(parse_arguments(argv, mode, &ip, &port, &address, &count, &write_val) == -1){
 		return 1;
@@ -41,10 +41,6 @@ int main(int argc, char **argv){
 			close(sockfd);
 			return 1;
 		}
-		if(read_registers(address, 1, sockfd) == -1){
-			close(sockfd);
-			return 1;
-		}	
 	}
 
 	close(sockfd);

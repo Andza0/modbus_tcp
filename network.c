@@ -11,7 +11,7 @@ int send_req(uint8_t req[], size_t sz, int sockfd)
 	setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
 	size_t sent = 0;
 	while(sent < sz){		
-		int n = send(sockfd, req + sent, sz - sent, 0);
+		ssize_t n = send(sockfd, req + sent, sz - sent, 0);
 		if(n == -1){
 			perror("send");
 			return -1;
@@ -35,7 +35,7 @@ int recv_resp(uint8_t resp[], size_t sz, int sockfd)
 	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 	size_t received = 0;
 	while(received < sz){
-		int n = recv(sockfd, resp + received, sz - received, 0);
+		ssize_t n = recv(sockfd, resp + received, sz - received, 0);
 		if(n == -1){
 			perror("recv");
 			return -1;
@@ -56,6 +56,7 @@ int connect_to_server(char *ip, uint16_t port)
 		perror("socket");
 		return -1;
 	}
+
 	struct sockaddr_in addr = {0};
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);

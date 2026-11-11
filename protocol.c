@@ -57,16 +57,16 @@ int validate_response(uint8_t MBAP_response[], uint8_t resp[], uint8_t req[])
 	return 0;
 }
 
-int read_registers(int start_address, int count, int sockfd)
+int read_registers(uint16_t start_address, uint8_t count, int sockfd)
 {
-	struct modbus_read_context config = {
+	struct modbus_request config = {
 		.transaction_id = 1,
 		.protocol_id = 0,
 		.length = 6,
 		.unit_id = 1,
 		.function_code = 3,
-		.start_address = start_address,
-		.count = count
+		.address = start_address,
+		.value = count
 	};
 
 	uint8_t read_req[12] = {
@@ -75,8 +75,8 @@ int read_registers(int start_address, int count, int sockfd)
 		config.length >> 8,		 	config.length,
 		config.unit_id, 
 		config.function_code,
-		config.start_address >> 8,	config.start_address,
-		config.count >> 8,		    config.count
+		config.address >> 8,		config.address,
+		config.value >> 8,		    config.value
 	};
 
 	print_hex("Request", read_req, 12);
@@ -115,9 +115,9 @@ int read_registers(int start_address, int count, int sockfd)
 	return 0;
 }
 
-int write_register(uint16_t address, int16_t write_val, int sockfd)
+int write_register(uint16_t address, uint16_t write_val, int sockfd)
 {
-	struct modbus_write_context config = {
+	struct modbus_request config = {
 		.transaction_id = 1,
 		.protocol_id = 0,
 		.length = 6,
@@ -128,9 +128,9 @@ int write_register(uint16_t address, int16_t write_val, int sockfd)
 	};
 
 	uint8_t write_req[12] = {
-		config.transaction_id << 8, config.transaction_id,
-		config.protocol_id << 8,	config.protocol_id,
-		config.length << 8, 		config.length,
+		config.transaction_id >> 8, config.transaction_id,
+		config.protocol_id >> 8,	config.protocol_id,
+		config.length >> 8, 		config.length,
 		config.unit_id, 
 		config.function_code,
 		config.address >> 8,	config.address,
@@ -166,16 +166,7 @@ int write_register(uint16_t address, int16_t write_val, int sockfd)
 	}
 
 	print_hex("Response", resp, recv_len - 2);
-	print_registers(resp, 1, address);
-
-
-	/*
-	00000000  00 01 00 00 00 06 01 06  00 00 02 9a               ........ ....
-	0000000C  00 01 00 00 00 06 01 03  00 00 00 01               ........ ....
-
-    00000000  00 01 00 00 00 06 01 06  00 00 02 9a               ........ ....
-    0000000C  00 01 00 00 00 05 01 03  02 02 9a   
-	*/
+	printf("Register %u: %u\n", (resp[0] << 8 | resp[1]), (resp[2] << 8 | resp[3]));
 	
 	return 0;
 }

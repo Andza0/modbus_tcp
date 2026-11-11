@@ -1,6 +1,6 @@
 #include "utils.h"
 
-int parse_arguments(char **argv, char *mode, char **ip, uint16_t *port, uint16_t *address, uint8_t *count, int16_t *write_val)
+int parse_arguments(char **argv, char *mode, char **ip, uint16_t *port, uint16_t *address, uint8_t *count, uint16_t *write_val)
 {
 	char *end;
 
@@ -31,7 +31,7 @@ int parse_arguments(char **argv, char *mode, char **ip, uint16_t *port, uint16_t
 		*address = address_long;
 
 		long write_val_long = strtol(argv[5], &end, 10);
-		if((end == argv[5] || *end != '\0') || (write_val_long < INT16_MIN || write_val_long > INT16_MAX)){
+		if((end == argv[5] || *end != '\0') || (write_val_long < 0 || write_val_long > UINT16_MAX)){
 			fprintf(stderr, "Invalid value\n");
 			print_usage(argv[0]);
 			return -1;
