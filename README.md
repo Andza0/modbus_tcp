@@ -9,6 +9,7 @@ _**sudo apt install build-essential python3-venv**_
 <h3>Prepare python environment:</h3>
 
 _**python3 -m venv venv**_
+
 _**venv/bin/pip install "pymodbus==3.6.9"**_
 
 In a separate terminal, run: _**venv/bin/python modbus_sim.py**_
