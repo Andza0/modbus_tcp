@@ -1,7 +1,7 @@
 SRCS := $(wildcard *.c)
 OBJECTS := $(SRCS:.c=.o)
 TARGET := mbread
-CFLAGS := -std=c11 -D_DEFAULT_SOURCE -Wall -Wextra
+CFLAGS := -std=c11 -D_DEFAULT_SOURCE -Wall -Wextra -Werror
 
 all: clean $(TARGET)
 
@@ -12,4 +12,4 @@ $(TARGET): $(OBJECTS)
 	$(CC) -c $(CFLAGS) $< -o $@
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET) $(OBJECTS)

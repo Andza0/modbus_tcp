@@ -1,5 +1,23 @@
 #include "protocol.h"
 
+ 	
+
+void build_request(struct modbus_request config, uint8_t *req)
+{
+	uint8_t data[12] = {
+		config.transaction_id >> 8, config.transaction_id,
+		config.protocol_id >> 8,	config.protocol_id,
+		config.length >> 8,		 	config.length,
+		config.unit_id, 
+		config.function_code,
+		config.address >> 8,		config.address,
+		config.value >> 8,		    config.value //00000010 10011010
+	};
+
+	memcpy(req, data, sizeof(data));
+}
+
+
 int validate_response(uint8_t MBAP_response[], uint8_t resp[], uint8_t req[])
 {
 	uint16_t recv_trans_id = (MBAP_response[0] << 8) | MBAP_response[1];
@@ -57,27 +75,20 @@ int validate_response(uint8_t MBAP_response[], uint8_t resp[], uint8_t req[])
 	return 0;
 }
 
-int read_registers(uint16_t start_address, uint8_t count, int sockfd)
+int send_command(uint16_t address, uint16_t value, uint8_t function_code, int sockfd)
 {
 	struct modbus_request config = {
 		.transaction_id = 1,
 		.protocol_id = 0,
 		.length = 6,
 		.unit_id = 1,
-		.function_code = 3,
-		.address = start_address,
-		.value = count
+		.function_code = function_code,
+		.address = address,
+		.value = value
 	};
 
-	uint8_t read_req[12] = {
-		config.transaction_id >> 8, config.transaction_id,
-		config.protocol_id >> 8,	config.protocol_id,
-		config.length >> 8,		 	config.length,
-		config.unit_id, 
-		config.function_code,
-		config.address >> 8,		config.address,
-		config.value >> 8,		    config.value
-	};
+	uint8_t read_req[12] = {0};
+	build_request(config, read_req);
 
 	print_hex("Request", read_req, 12);
 
@@ -91,82 +102,45 @@ int read_registers(uint16_t start_address, uint8_t count, int sockfd)
 	}
 
 	uint16_t recv_len = (MBAP_response[4] << 8) | MBAP_response[5];
-	int expected_len = 3 + 2 * count;
 
-	print_hex("Header", MBAP_response, 8);
-	if(recv_len != expected_len && !(MBAP_response[7] == 0x83 && recv_len == 3)){
+	int expected_len = 0;
+	if(function_code == 3){
+		expected_len = 3 + 2 * value;
+	}
+	else if(function_code == 6){
+		expected_len = 6;
+	}
+
+	if(recv_len != expected_len && !(MBAP_response[7] == (0x80 | function_code) && recv_len == 3)){
 		fprintf(stderr, "Incorrect length reading\n");
 		return -1;
 	}
 
-	uint8_t resp[recv_len - 2];
-	if(recv_resp(resp, recv_len - 2, sockfd) == -1){
+	size_t pdu_resp_sz = recv_len - 2;
+	uint8_t PDU_response[pdu_resp_sz];
+	if(recv_resp(PDU_response, pdu_resp_sz, sockfd) == -1){
 		return -1;
 	}
 
-	int is_valid = validate_response(MBAP_response, resp, read_req);
+	size_t resp_sz = 8 + pdu_resp_sz;
+	uint8_t response[resp_sz];
+	memcpy(response, MBAP_response, 8);
+	memcpy(response + 8, PDU_response, pdu_resp_sz);
+
+	print_hex("Response", response, resp_sz);
+
+	int is_valid = validate_response(MBAP_response, PDU_response, read_req);
 	if(is_valid != 0){
 		return -1;
 	}
 
-	print_hex("Response", resp, recv_len - 2);
-	print_registers(resp, count, start_address);
-
-	return 0;
-}
-
-int write_register(uint16_t address, uint16_t write_val, int sockfd)
-{
-	struct modbus_request config = {
-		.transaction_id = 1,
-		.protocol_id = 0,
-		.length = 6,
-		.unit_id = 1,
-		.function_code = 6,
-		.address = address,
-		.value = write_val
-	};
-
-	uint8_t write_req[12] = {
-		config.transaction_id >> 8, config.transaction_id,
-		config.protocol_id >> 8,	config.protocol_id,
-		config.length >> 8, 		config.length,
-		config.unit_id, 
-		config.function_code,
-		config.address >> 8,	config.address,
-		config.value >> 8,		config.value
-	};
-
-	if(send_req(write_req, 12, sockfd) == -1){
-		return -1;
+	if(function_code == 3){
+		print_registers(PDU_response, address, value, "read");
 	}
-
-	uint8_t MBAP_response[8]; //read MBAP + function code
-	if(recv_resp(MBAP_response, 8, sockfd) == -1){
-		return -1;
+	else if(function_code == 6){
+		print_registers(PDU_response, address, 1, "write");
 	}
-
-	uint16_t recv_len = (MBAP_response[4] << 8) | MBAP_response[5];
-	int expected_len = 6;
-
-	print_hex("Header", MBAP_response, 8);
-	if(recv_len != expected_len && !(MBAP_response[7] == 0x86 && recv_len == 3)){
-		fprintf(stderr, "Incorrect length reading\n");
-		return -1;
-	}
-
-	uint8_t resp[recv_len - 2];
-	if(recv_resp(resp, recv_len - 2, sockfd) == -1){
-		return -1;
-	}
-
-	int is_valid = validate_response(MBAP_response, resp, write_req);
-	if(is_valid != 0){
-		return -1;
-	}
-
-	print_hex("Response", resp, recv_len - 2);
-	printf("Register %u: %u\n", (resp[0] << 8 | resp[1]), (resp[2] << 8 | resp[3]));
 	
+
 	return 0;
 }

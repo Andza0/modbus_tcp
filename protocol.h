@@ -21,7 +21,7 @@ struct modbus_request
 
 
 int validate_response(uint8_t resp_header[], uint8_t resp[], uint8_t req[]);
-int read_registers(uint16_t start_address, uint8_t count, int sockfd);
-int write_register(uint16_t address, uint16_t write_val, int sockfd);
+int send_command(uint16_t address, uint16_t value, uint8_t function_code, int sockfd);
+void build_request(struct modbus_request config, uint8_t *req);
 
 #endif

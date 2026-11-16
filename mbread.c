@@ -17,11 +17,9 @@ int main(int argc, char **argv){
 	char *ip;
 	uint16_t port;
 	uint16_t address;
+	uint16_t value;
 
-	uint8_t count;
-	uint16_t write_val;
-
-	if(parse_arguments(argv, mode, &ip, &port, &address, &count, &write_val) == -1){
+	if(parse_arguments(argv, mode, &ip, &port, &address, &value) == -1){
 		return 1;
 	}
 
@@ -31,13 +29,13 @@ int main(int argc, char **argv){
 	}
 
 	if(strcmp(mode, "read") == 0){
-		if(read_registers(address, count, sockfd) == -1){
+		if(send_command(address, value, 3, sockfd) == -1){
 			close(sockfd);
 			return 1;
 		}	
 	}
 	else if(strcmp(mode, "write") == 0){
-		if(write_register(address, write_val, sockfd) == -1){
+		if(send_command(address, value, 6, sockfd) == -1){
 			close(sockfd);
 			return 1;
 		}
